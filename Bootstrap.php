@@ -43,24 +43,29 @@ class Bootstrap implements \yii\base\BootstrapInterface
     public function bootstrap($app)
     {
         /** @var $module Module */
-        $module = $this->getModuleNested('oauth2', $app);
+        // Check if $app has Oauth2 module
+        if ($app->hasModule('oauth2') ) { 
+            
+            $module = $this->getModuleNested('oauth2', $app);
 
-        if ($module instanceof Module) {
-            $this->_modelMap = array_merge($this->_modelMap, $module->modelMap);
-            foreach ($this->_modelMap as $name => $definition) {
-                \Yii::$container->set("filsh\\yii2\\oauth2server\\models\\" . $name, $definition);
-                $module->modelMap[$name] = is_array($definition) ? $definition['class'] : $definition;
+            if ($module instanceof Module) {
+                $this->_modelMap = array_merge($this->_modelMap, $module->modelMap);
+                foreach ($this->_modelMap as $name => $definition) {
+                    \Yii::$container->set("filsh\\yii2\\oauth2server\\models\\" . $name, $definition);
+                    $module->modelMap[$name] = is_array($definition) ? $definition['class'] : $definition;
+                }
+    
+                $this->_storageMap = array_merge($this->_storageMap, $module->storageMap);
+                foreach ($this->_storageMap as $name => $definition) {
+                    \Yii::$container->set($name, $definition);
+                    $module->storageMap[$name] = is_array($definition) ? $definition['class'] : $definition;
+                }
+    
+                if ($app instanceof \yii\console\Application) {
+                    $module->controllerNamespace = 'filsh\yii2\oauth2server\commands';
+                }
             }
-
-            $this->_storageMap = array_merge($this->_storageMap, $module->storageMap);
-            foreach ($this->_storageMap as $name => $definition) {
-                \Yii::$container->set($name, $definition);
-                $module->storageMap[$name] = is_array($definition) ? $definition['class'] : $definition;
-            }
-
-            if ($app instanceof \yii\console\Application) {
-                $module->controllerNamespace = 'filsh\yii2\oauth2server\commands';
-            }
+            
         }
     }
 
